@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import axios from "axios";
+import { GoogleGenAI } from "@google/genai";
+
+const ai = new GoogleGenAI({
+  apiKey: process.env.GOOGLE_API_KEY,
+});
 
 export async function POST(req) {
   try {
@@ -11,25 +15,28 @@ export async function POST(req) {
         { status: 400 }
       );
     }
+    const generationConfig = {
+      temperature: 1,
+      topP: 0.95,
+      topK: 64,
+      maxOutputTokens: 8192,
+      responseMimeType: "application/json",
+    };
+    const prompt = `Create a travel itinerary for ${location} for ${days} days. The user is interested in ${interests.join(
+      ", "
+    )}  .`;
 
-    const prompt = `
-You are a smart travel planner. Suggest a detailed ${days}-day itinerary for a trip to ${location}.
-Focus on interests like ${interests.join(", ")}.
-Each day's plan should include sightseeing spots, food places, and activities.
-`;
-
-    const ollamaResponse = await axios.post("http://localhost:11434/api/chat", {
-      model: "llama3", // or whatever model you’re using
-      messages: [{ role: "user", content: prompt }],
-      stream: false,
+    const response = await ai.models.generateContent({
+      model: "gemini-2.0-flash",
+      generationConfig,
+      contents: prompt,
     });
 
-    const aiMessage =
-      ollamaResponse.data.message?.content || "No plan generated.";
+    const aiMessage = response.text || "No plan generated.";
 
     return NextResponse.json({ itinerary: aiMessage }, { status: 200 });
   } catch (error) {
-    console.error("Error from Ollama:", error.message);
+    console.error("Error from Google GenAI:", error);
     return NextResponse.json(
       { message: "Failed to generate itinerary." },
       { status: 500 }
