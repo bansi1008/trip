@@ -23,12 +23,15 @@ export async function POST(req) {
 
     if (verifyOtp) {
       const savedOtp = await redis.get(`otp:${email}`);
-      if (!savedOtp) {
-        return Response.json(
-          { message: "OTP expired or invalid" },
-          { status: 400 }
+      if (savedOtp && savedOtp.toString() === otp.toString()) {
+        console.log("OTP Verified!");
+      } else {
+        return new Response(
+          JSON.stringify({ message: "Invalid or expired OTP" }),
+          { status: 400, headers: { "Content-Type": "application/json" } }
         );
       }
+
       if (otp !== savedOtp) {
         return Response.json({ message: "Invalid OTP" }, { status: 400 });
       }
@@ -40,7 +43,7 @@ export async function POST(req) {
         name,
         email,
         password: hashedPassword,
-        confirmPassword: hashedPassword,
+        confirmPassword,
       });
 
       await newUser.save();
@@ -52,17 +55,17 @@ export async function POST(req) {
     } else {
       // This branch is for initial signup request - send OTP
       if (password !== confirmPassword) {
-        return Response.json(
-          { message: "Passwords do not match." },
-          { status: 400 }
+        return new Response(
+          JSON.stringify({ message: "Passwords do not match." }),
+          { status: 400, headers: { "Content-Type": "application/json" } }
         );
       }
 
       const existingUser = await User.findOne({ email });
       if (existingUser) {
-        return Response.json(
-          { message: "Email already registered." },
-          { status: 400 }
+        return new Response(
+          JSON.stringify({ message: "Email already registered." }),
+          { status: 400, headers: { "Content-Type": "application/json" } }
         );
       }
 
@@ -78,9 +81,9 @@ export async function POST(req) {
         text: `Unlock Your Wandermind Journey! Your OTP is ${generatedOtp}. Hurry, it expires in 5 minutes!`,
       });
 
-      return Response.json(
-        { message: "OTP sent to your email." },
-        { status: 200 }
+      return new Response(
+        JSON.stringify({ message: "OTP sent to your email." }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
       );
     }
   } catch (error) {
