@@ -1,0 +1,189 @@
+/* Feature - Modern Grid Layout */
+.features {
+  padding: 6rem 0;
+  background: #ffffff;
+  position: relative;
+}
+
+.features::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+      circle at 25% 25%,
+      rgba(79, 70, 229, 0.03) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 75% 75%,
+      rgba(124, 58, 237, 0.03) 0%,
+      transparent 50%
+    );
+  pointer-events: none;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+  margin-top: 3rem;
+  position: relative;
+  z-index: 2;
+}
+
+.feature-card {
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.feature-card:hover,
+.feature-card-hovered {
+  border-color: rgba(79, 70, 229, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  transform: translateY(-4px);
+}
+
+.feature-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #4f46e5, #7c3aed, #ec4899);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.feature-card:hover::before,
+.feature-card-hovered::before {
+  opacity: 1;
+}
+
+.feature-icon-container {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+
+.feature-card .feature-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.icon-main {
+  font-size: 2.5rem;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover .icon-main,
+.feature-card-hovered .icon-main {
+  transform: scale(1.1);
+}
+
+.feature-content h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.01em;
+}
+
+.feature-content p {
+  color: #6b7280;
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+/* Color variants for different features */
+.feature-card:nth-child(1) .feature-icon {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+}
+
+.feature-card:nth-child(2) .feature-icon {
+  background: linear-gradient(135deg, #06b6d4, #0891b2);
+}
+
+.feature-card:nth-child(3) .feature-icon {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.feature-card:nth-child(4) .feature-icon {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.feature-card:nth-child(5) .feature-icon {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.feature-card:nth-child(6) .feature-icon {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
+/* Subtle animation on scroll */
+.feature-card {
+  animation: fadeInUp 0.6s ease-out;
+  animation-fill-mode: both;
+}
+
+.feature-card:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.feature-card:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.feature-card:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.feature-card:nth-child(4) {
+  animation-delay: 0.4s;
+}
+.feature-card:nth-child(5) {
+  animation-delay: 0.5s;
+}
+.feature-card:nth-child(6) {
+  animation-delay: 0.6s;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .features {
+    padding: 4rem 0;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .feature-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .feature-card .feature-icon {
+    width: 70px;
+    height: 70px;
+  }
+
+  .icon-main {
+    font-size: 2.2rem;
+  }
+}

@@ -1,0 +1,149 @@
+/* TravelPersona - Clean Card Design */
+.travel-persona {
+  padding: 6rem 0;
+  background: #ffffff;
+}
+
+.persona-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  margin-top: 3rem;
+}
+
+.persona-card {
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.persona-card:hover {
+  border-color: rgba(79, 70, 229, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.persona-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #4f46e5, #7c3aed, #ec4899);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.persona-card-hovered::before {
+  opacity: 1;
+}
+
+.persona-icon-container {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+
+.persona-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.main-icon {
+  font-size: 2.5rem;
+  color: white;
+}
+
+.secondary-icon {
+  position: absolute;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.8);
+  top: -6px;
+  right: -6px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border-radius: 50%;
+  padding: 0.25rem;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.2s ease;
+}
+
+.persona-card-hovered .secondary-icon {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.persona-card h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.01em;
+}
+
+.persona-card p {
+  color: #6b7280;
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+/* Color variants for different personas */
+.persona-card:nth-child(1) .persona-icon {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+}
+
+.persona-card:nth-child(2) .persona-icon {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.persona-card:nth-child(3) .persona-icon {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
+.persona-card:nth-child(4) .persona-icon {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .travel-persona {
+    padding: 4rem 0;
+  }
+
+  .persona-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .persona-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .persona-icon {
+    width: 70px;
+    height: 70px;
+  }
+
+  .main-icon {
+    font-size: 2.2rem;
+  }
+}

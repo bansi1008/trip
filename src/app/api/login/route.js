@@ -12,27 +12,31 @@ export async function POST(req) {
 
     const user = await User.findOne({ email });
     if (!user) {
-      return Response.json(
-        {
-          message: "you don't have any account with us feel free to create one",
-        },
-        { status: 400 }
+      return new Response(
+        JSON.stringify({ message: "you don't have account with us" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
+    const storedHash =
+      "$2b$08$Ev7GQDgvvfwp0f85V1eYweLjY4GKCM56HkrgR./Kb10AE7bArpdaC";
+    const testPassword = "fakePassword123";
+
+    bcrypt.compare(testPassword, storedHash).then((isMatch) => {
+      console.log("Password matches?", isMatch);
+    });
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      return Response.json({ message: "Invalid credentials" }, { status: 400 });
+      return new Response(JSON.stringify({ message: "wrong password" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
     }
     const token = generateToken(user);
-    return Response.json(
-      {
-        message: "Login successful",
-        token,
-        userId: user._id,
-      },
-      { status: 200 }
-    );
+    return new Response(JSON.stringify({ message: "login success full" }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (error) {
     return Response.json(
       { message: "Server error", error: error.message },
