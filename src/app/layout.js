@@ -7,8 +7,9 @@ export const metadata = {
   keywords:
     "AI travel, personalized trips, travel planning, smart itinerary, mood-based travel",
   author: "AI Travel Team",
-  viewport: "width=device-width, initial-scale=1",
+  //viewport: "width=device-width, initial-scale=1",
 };
+export const viewport = "width=device-width, initial-scale=1";
 
 export default function RootLayout({ children }) {
   return (

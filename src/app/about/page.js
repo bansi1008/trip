@@ -53,32 +53,10 @@ export default function AboutPage() {
 
   const team = [
     {
-      name: "Sarah Chen",
-      role: "CEO & Co-founder",
-      description:
-        "Former Google AI researcher with 10+ years in machine learning and travel tech.",
-      icon: FiTarget,
-    },
-    {
-      name: "Marcus Rodriguez",
-      role: "CTO & Co-founder",
-      description:
-        "Ex-Airbnb engineer specializing in scalable AI systems and recommendation engines.",
+      name: "Bansi",
+      role: "Developer",
+      description: "Software devloper with 1.5+ years of exp",
       icon: FiCode,
-    },
-    {
-      name: "Elena Kowalski",
-      role: "Head of AI",
-      description:
-        "PhD in Computer Science, leading our persona detection and mood analysis algorithms.",
-      icon: FaBrain,
-    },
-    {
-      name: "David Park",
-      role: "Head of Product",
-      description:
-        "Former product lead at Booking.com, passionate about intuitive travel experiences.",
-      icon: FiCompass,
     },
   ];
 
@@ -183,7 +161,7 @@ export default function AboutPage() {
         <section className="about-team">
           <div className="container">
             <div className="section-header">
-              <h2>Meet Our Team</h2>
+              <h2>Meet The Devloper</h2>
               <p>
                 The passionate minds behind AiBasedTrip, bringing together
                 expertise in AI, travel, and user experience.
