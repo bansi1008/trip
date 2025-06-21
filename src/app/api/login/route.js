@@ -17,13 +17,7 @@ export async function POST(req) {
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
-    const storedHash =
-      "$2b$08$Ev7GQDgvvfwp0f85V1eYweLjY4GKCM56HkrgR./Kb10AE7bArpdaC";
-    const testPassword = "fakePassword123";
 
-    bcrypt.compare(testPassword, storedHash).then((isMatch) => {
-      console.log("Password matches?", isMatch);
-    });
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
@@ -33,9 +27,22 @@ export async function POST(req) {
       });
     }
     const token = generateToken(user);
+    const cookieOptions = [
+      `token=${token}`,
+      `HttpOnly`,
+      `Path=/`,
+      `Max-Age=${60 * 60 * 24 * 7}`, // 7 days
+      `SameSite=Lax`,
+      process.env.NODE_ENV === "production" ? `Secure` : "",
+    ]
+      .filter(Boolean)
+      .join("; ");
     return new Response(JSON.stringify({ message: "login success full" }), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Set-Cookie": cookieOptions,
+      },
     });
   } catch (error) {
     return Response.json(

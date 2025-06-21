@@ -1,113 +1,107 @@
 "use client";
-import axios from "axios";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import TripForm from "../components/TripForm";
+import TripNavbar from "../components/TripNavbar";
 
 export default function Home() {
-  return (
-    <div className="max-w-md mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Search City</h1>
-      <CitySearch />
-    </div>
-  );
-}
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
-const CitySearch = () => {
-  const [query, setQuery] = useState("");
-  const [suggestions, setSuggestions] = useState([]);
-  const [photoUrl, setPhotoUrl] = useState("");
-  const apiKey = process.env.NEXT_PUBLIC_MAP;
+  // Map interest IDs to full names for API compatibility
+  const interestMapping = {
+    beach: "Beach holidays",
+    city: "City exploration",
+    historical: "Historical sites",
+    "theme-parks": "Theme parks",
+    shopping: "Shopping & Fashion",
+    adventure: "Adventure Activities",
+    nightlife: "Night Life",
+    theater: "Theatre & performing arts",
+  };
 
-  useEffect(() => {
-    const fetchSuggestions = async () => {
-      if (query.length < 2) {
-        setSuggestions([]);
-        return;
-      }
+  const handleFormSubmit = async (formData) => {
+    setIsLoading(true);
 
-      try {
-        const res = await fetch(
-          `/api/places?input=${encodeURIComponent(query)}`
-        );
-        const data = await res.json();
-
-        const cities = data.predictions.map((item) => ({
-          description: item.description,
-          place_id: item.place_id,
-        }));
-
-        setSuggestions(cities);
-      } catch (error) {
-        console.error("Error fetching city suggestions:", error);
-      }
-    };
-
-    const debounce = setTimeout(fetchSuggestions, 400);
-    return () => clearTimeout(debounce);
-  }, [query]);
-
-  const fetchCityPhoto = async (place_id) => {
     try {
-      const res = await fetch(
-        `/api/photo?place_id=${encodeURIComponent(place_id)}`
+      // Convert interest IDs to full names
+      const mappedInterests = formData.interests.map(
+        (id) => interestMapping[id]
       );
-      const data = await res.json();
 
-      if (res.ok && data.photoUrl) {
-        setPhotoUrl(data.photoUrl);
+      const payload = {
+        location: formData.location,
+        days: formData.days,
+        interests: mappedInterests,
+        travelgroup: formData.travelgroup,
+        budget: formData.budget,
+      };
+
+      console.log("Sending payload:", payload);
+
+      const response = await fetch("/api/trip", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log("Trip generated successfully!");
+        console.log("Response data:", data);
+
+        // Store the response data in sessionStorage for the results page
+        sessionStorage.setItem("tripData", JSON.stringify(data));
+        sessionStorage.setItem("tripParams", JSON.stringify(formData));
+
+        // Navigate to results page
+        router.push("/results");
       } else {
-        setPhotoUrl("");
-        alert(data.error || "No photo available.");
+        console.error("API Error:", data);
+        alert(`Error: ${data.message || "Failed to generate trip"}`);
       }
-    } catch (err) {
-      console.error("Error fetching photo:", err);
+    } catch (error) {
+      console.error("Network error:", error);
+      alert("Network error. Please check your connection and try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div>
-      <input
-        type="text"
-        placeholder="Enter city name"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="border p-2 w-full rounded"
-      />
-
-      {suggestions.length > 0 && (
-        <ul className="bg-white border rounded mt-1 shadow max-h-60 overflow-auto">
-          {suggestions.map((place) => (
-            <li
-              key={place.place_id}
-              className="flex justify-between items-center px-4 py-2 hover:bg-gray-100 cursor-pointer"
-            >
-              <div
-                onClick={() => {
-                  setQuery(place.description);
-                  setSuggestions([]);
-                }}
-              >
-                {place.description}
-              </div>
-              <button
-                onClick={() => fetchCityPhoto(place.place_id)}
-                className="text-sm text-blue-500 hover:underline ml-2"
-              >
-                Get Image
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {photoUrl && (
-        <div className="mt-4">
-          <img
-            src={photoUrl}
-            alt="City"
-            className="rounded shadow max-w-full"
-          />
+    <div style={{ minHeight: "100vh", background: "var(--background)" }}>
+      {isLoading && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            background: "rgba(0, 0, 0, 0.8)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+            color: "white",
+            fontSize: "1.2rem",
+          }}
+        >
+          <div style={{ textAlign: "center" }}>
+            <div style={{ marginBottom: "1rem" }}>
+              ✨ Creating your perfect itinerary...
+            </div>
+            <div className="animate-pulse">
+              Please wait, this may take a moment
+            </div>
+          </div>
         </div>
       )}
+
+      <TripForm onSubmit={handleFormSubmit} />
     </div>
   );
-};
+}

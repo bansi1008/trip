@@ -33,7 +33,7 @@ export async function GET(request) {
       const photo_reference = photos[0].photo_reference;
 
       // Construct photo URL to send back to frontend
-      const photoUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${photo_reference}&key=${apiKey}`;
+      const photoUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=16000&photo_reference=${photo_reference}&key=${apiKey}`;
 
       return new Response(JSON.stringify({ photoUrl }), {
         status: 200,

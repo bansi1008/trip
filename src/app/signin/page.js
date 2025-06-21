@@ -14,8 +14,24 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import "../../styles/components/Signin.css";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+//import { cookies } from "next/headers";
+//import { jwtVerify } from "jose";
+//import { redirect } from "next/navigation";
 
 export default function Signin() {
+  // const token = cookies().get("token")?.value;
+
+  // if (token) {
+  //   try {
+  //     const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+  //     await jwtVerify(token, secret);
+  //     redirect("/home");
+  //   } catch (e) {
+  //     toast.error("Invalid token, please log in again.");
+  //   }
+  // }
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -84,23 +100,20 @@ export default function Signin() {
           password: formData.password,
         }),
       });
-      console.log("Signin attempt:", formData);
+
       const data = await res.json();
 
       if (res.ok) {
-        console.log("login sucess", data);
+        toast.success("Login successful, cheers, enjoy the harmony!");
         router.push("/home");
       } else {
-        console.log("error:", data.message);
+        toast.error(data.message || "Something went wrong.");
       }
 
       setIsLoading(false);
     } catch (error) {
-      console.error("Network or server error:", error.message);
-      showNotification(
-        "Network error. Please check your connection and try again.",
-        "error"
-      );
+      toast.error(error.message || "it's not you it's us, try again later :)");
+
       setIsLoading(false);
     }
   };
