@@ -1,18 +1,21 @@
-import jwt from "jsonwebtoken";
+import { jwtVerify } from "jose";
 
-export function authenticateRequest(req) {
-  const authHeader = req.headers.get("authorization");
+export async function authenticateRequest(req) {
+  const cookie = req.headers.get("cookie"); // in Next.js edge/api routes use req.headers.get()
+  if (!cookie) return null;
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    throw new Error("Unauthorized: No token provided");
-  }
+  // Parse token from cookie string (e.g., "token=abc123; othercookie=xyz")
+  const tokenMatch = cookie.match(/token=([^;]+)/);
+  if (!tokenMatch) return null;
 
-  const token = authHeader.split(" ")[1];
+  const token = tokenMatch[1];
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    return decoded.userId;
-  } catch (err) {
-    throw new Error("Unauthorized: Invalid token");
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+    const { payload } = await jwtVerify(token, secret);
+    return payload;
+  } catch (error) {
+    console.error("JWT verification failed:", error.message);
+    return null;
   }
 }

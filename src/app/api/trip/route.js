@@ -185,18 +185,54 @@
 export const runtime = "edge"; // Use Edge Functions for lower latency
 import { NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
+import { authenticateRequest } from "../../../lib/authMiddleware";
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GOOGLE_API_KEY,
 });
 
 export async function POST(req) {
-  try {
-    const { location, days, interests, travelgroup, budget } = await req.json();
+  const user = await authenticateRequest(req);
 
-    if (!location || !days || !interests || !travelgroup || !budget) {
+  if (!user) {
+    return new Response(JSON.stringify({ message: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  try {
+    const body = await req.json();
+    const { location, days, interests, travelgroup, budget } = body;
+
+    if (!location) {
       return NextResponse.json(
-        { message: "Missing required fields." },
+        { message: "Missing location fields." },
+        { status: 400 }
+      );
+    }
+
+    if (!days) {
+      return NextResponse.json(
+        { message: "Missing days fields." },
+        { status: 400 }
+      );
+    }
+    if (!interests) {
+      return NextResponse.json(
+        { message: "Missing interests fields." },
+        { status: 400 }
+      );
+    }
+    if (!travelgroup) {
+      return NextResponse.json(
+        { message: "Missing travelgroup fields." },
+        { status: 400 }
+      );
+    }
+    if (!budget) {
+      return NextResponse.json(
+        { message: "Missing budget fields." },
         { status: 400 }
       );
     }

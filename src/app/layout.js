@@ -1,4 +1,5 @@
 import "../styles/main.css";
+import { Toaster } from "react-hot-toast";
 
 export const metadata = {
   title: "AI Travel - Your Perfect Trip, AI-Powered",
@@ -26,7 +27,10 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <Toaster position="top-right" />
+        {children}
+      </body>
     </html>
   );
 }
