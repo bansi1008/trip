@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   FaHotel,
   FaStar,
@@ -11,20 +12,73 @@ import {
   FaCar,
   FaHeart,
   FaShareAlt,
+  FaSpinner,
+  FaMapPin,
+  FaTimes,
 } from "react-icons/fa";
 import { MdLocationOn } from "react-icons/md";
 import styles from "./HotelCard.module.css";
 
 export default function HotelCard({ hotel, index }) {
+  const [mapData, setMapData] = useState({});
+  const [loadingMaps, setLoadingMaps] = useState({});
+  const [showMaps, setShowMaps] = useState({});
+
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
   if (!hotel) return null;
 
   const {
     hotelName = "Hotel Name",
     distanceFromCenterInKm = 0,
-    pricePerNight = "₹0",
+    pricePerNight = "$0",
     rating = 0,
     address = "Address not available",
   } = hotel;
+
+  const hotelId = `hotel-${index}`;
+
+  const geocodeActivity = async (activityName, activityId) => {
+    if (!apiKey) {
+      alert(
+        "Google Maps API key is not configured. Please add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to your environment variables."
+      );
+      return;
+    }
+
+    setLoadingMaps((prev) => ({ ...prev, [activityId]: true }));
+
+    try {
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+          activityName
+        )}&key=${apiKey}`
+      );
+      const data = await response.json();
+
+      if (data.status === "OK") {
+        const { lat, lng } = data.results[0].geometry.location;
+        setMapData((prev) => ({
+          ...prev,
+          [activityId]: { lat, lng, activityName },
+        }));
+        setShowMaps((prev) => ({ ...prev, [activityId]: true }));
+      } else {
+        alert(
+          `Location not found for "${activityName}". Please try with a more specific location name.`
+        );
+      }
+    } catch (error) {
+      console.error("Geocoding error:", error);
+      alert("Error loading map. Please check your internet connection.");
+    }
+
+    setLoadingMaps((prev) => ({ ...prev, [activityId]: false }));
+  };
+
+  const closeMap = (activityId) => {
+    setShowMaps((prev) => ({ ...prev, [activityId]: false }));
+  };
 
   const renderStars = (rating) => {
     const stars = [];
@@ -146,9 +200,48 @@ export default function HotelCard({ hotel, index }) {
 
         {/* Action Buttons */}
         <div className={styles.actionButtons}>
-          <button className={styles.viewDetailsBtn}>View Details</button>
+          <button
+            className={styles.viewDetailsBtn}
+            onClick={() => geocodeActivity(hotelName, hotelId)}
+            disabled={loadingMaps[hotelId]}
+          >
+            {loadingMaps[hotelId] ? (
+              <>
+                <FaSpinner className={styles.spinningIcon} />
+                Loading...
+              </>
+            ) : (
+              <>
+                <FaMapPin />
+                View Location
+              </>
+            )}
+          </button>
           <button className={styles.bookNowBtn}>Book Now</button>
         </div>
+
+        {/* Map Display */}
+        {showMaps[hotelId] && mapData[hotelId] && (
+          <div className={styles.mapContainer}>
+            <div className={styles.mapHeader}>
+              <h6 className={styles.mapTitle}>
+                {mapData[hotelId].activityName}
+              </h6>
+              <button
+                className={styles.closeMapButton}
+                onClick={() => closeMap(hotelId)}
+              >
+                <FaTimes />
+              </button>
+            </div>
+            <iframe
+              className={styles.mapIframe}
+              loading="lazy"
+              allowFullScreen
+              src={`https://www.google.com/maps/embed/v1/view?key=${apiKey}&center=${mapData[hotelId].lat},${mapData[hotelId].lng}&zoom=15`}
+            ></iframe>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -299,7 +299,7 @@ export default function ItineraryDisplay({ itinerary }) {
                                           className={styles.mapIframe}
                                           loading="lazy"
                                           allowFullScreen
-                                          src={`https://www.google.com/maps/embed/v1/view?key=${apiKey}&center=${mapData[activityId].lat},${mapData[activityId].lng}&zoom=15`}
+                                          src={`https://www.google.com/maps/embed/v1/view?key=${apiKey}&center=${mapData[activityId].lat},${mapData[activityId].lng}&zoom=17`}
                                         ></iframe>
                                       </div>
                                     )}
