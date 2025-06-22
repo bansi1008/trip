@@ -22,13 +22,19 @@ export default function TripNavbar() {
 
   useEffect(() => {
     // Mock user data - replace with actual user data from your auth system
-    const mockUser = {
-      name: "Bansi Dobariya",
-      email: "bansidobariya@example.com",
-      avatar:
-        "https://gravatar.com/avatar/70ee318f5b3659179826868bfb45b2b2?s=400&d=robohash&r=x", // You can add avatar URL here
+    // const mockUser = {
+    //   name: "Bansi Dobariya",
+    //   email: "bansidobariya@example.com",
+    //   avatar:
+    //     "https://gravatar.com/avatar/70ee318f5b3659179826868bfb45b2b2?s=400&d=robohash&r=x", // You can add avatar URL here
+    // };
+    const fetchuser = async () => {
+      const response = await fetch("/api/mydet");
+      const mockUser = await response.json();
+      console.log("Fetched user data:", mockUser);
+      setUser(mockUser);
     };
-    setUser(mockUser);
+    fetchuser();
   }, []);
 
   const toggleMenu = () => {

@@ -34,6 +34,55 @@ export default function Results() {
   const [activeTab, setActiveTab] = useState("itinerary");
   const router = useRouter();
 
+  const handlesave = () => {
+    try {
+      // Get current saved trips from localStorage
+      const existingSavedTrips = JSON.parse(
+        localStorage.getItem("savedTrips") || "[]"
+      );
+
+      // Get trip parameters for metadata
+      const tripParams = JSON.parse(
+        sessionStorage.getItem("tripParams") || "{}"
+      );
+
+      // Create a new saved trip object
+      const savedTrip = {
+        id: Date.now(), // Simple unique ID
+        savedAt: new Date().toISOString(),
+        tripData: tripData,
+        tripParams: tripParams,
+        location: tripParams.location || "Unknown Location",
+        days: tripParams.days || getDaysCount(),
+        budget: tripParams.budget || "Not specified",
+      };
+
+      // Check if this trip is already saved (prevent duplicates)
+      const isDuplicate = existingSavedTrips.some(
+        (trip) =>
+          trip.location === savedTrip.location &&
+          trip.days === savedTrip.days &&
+          JSON.stringify(trip.tripData) === JSON.stringify(savedTrip.tripData)
+      );
+
+      if (isDuplicate) {
+        alert("This trip is already saved!");
+        return;
+      }
+
+      // Add new trip to the beginning of the array
+      const updatedSavedTrips = [savedTrip, ...existingSavedTrips];
+
+      // Save to localStorage
+      localStorage.setItem("savedTrips", JSON.stringify(updatedSavedTrips));
+
+      alert("Trip saved successfully!");
+    } catch (error) {
+      console.error("Error saving trip:", error);
+      alert("Failed to save trip. Please try again.");
+    }
+  };
+
   useEffect(() => {
     const loadTripData = () => {
       try {
@@ -146,7 +195,7 @@ export default function Results() {
               <button onClick={handleShareTrip} className={styles.actionBtn}>
                 <FaShare />
               </button>
-              <button className={styles.actionBtn}>
+              <button className={styles.actionBtn} onClick={handlesave}>
                 <FaHeart />
               </button>
             </div>

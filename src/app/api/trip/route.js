@@ -193,6 +193,7 @@ const ai = new GoogleGenAI({
 
 export async function POST(req) {
   const user = await authenticateRequest(req);
+ 
 
   if (!user) {
     return new Response(JSON.stringify({ message: "Unauthorized" }), {
