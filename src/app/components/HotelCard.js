@@ -1,5 +1,5 @@
 "use client";
-
+import toast from "react-hot-toast";
 import { useState } from "react";
 import {
   FaHotel,
@@ -64,13 +64,11 @@ export default function HotelCard({ hotel, index }) {
         }));
         setShowMaps((prev) => ({ ...prev, [activityId]: true }));
       } else {
-        alert(
-          `Location not found for "${activityName}". Please try with a more specific location name.`
-        );
+        toast.error(`Location not found for "${activityName}" so sorryyyyy`);
       }
     } catch (error) {
       console.error("Geocoding error:", error);
-      alert("Error loading map. Please check your internet connection.");
+      toast.error("Error loading map. Please check your internet connection.");
     }
 
     setLoadingMaps((prev) => ({ ...prev, [activityId]: false }));

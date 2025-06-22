@@ -1,5 +1,5 @@
 "use client";
-
+import toast from "react-hot-toast";
 import { useState } from "react";
 import {
   FaSun,
@@ -131,13 +131,13 @@ export default function ItineraryDisplay({ itinerary }) {
         }));
         setShowMaps((prev) => ({ ...prev, [activityId]: true }));
       } else {
-        alert(
+        toast.error(
           `Location not found for "${activityName}". Please try with a more specific location name.`
         );
       }
     } catch (error) {
       console.error("Geocoding error:", error);
-      alert("Error loading map. Please check your internet connection.");
+      toast.error("Error loading map. Please check your internet connection.");
     }
 
     setLoadingMaps((prev) => ({ ...prev, [activityId]: false }));

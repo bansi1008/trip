@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import {
   FaHeart,
   FaMapMarkerAlt,
@@ -40,16 +41,15 @@ export default function SavedTripsPage() {
   };
 
   const handleDeleteTrip = (tripId) => {
-    if (window.confirm("Are you sure you want to delete this saved trip?")) {
-      try {
-        const updatedTrips = savedTrips.filter((trip) => trip.id !== tripId);
-        localStorage.setItem("savedTrips", JSON.stringify(updatedTrips));
-        setSavedTrips(updatedTrips);
-        alert("Trip deleted successfully!");
-      } catch (error) {
-        console.error("Error deleting trip:", error);
-        alert("Failed to delete trip. Please try again.");
-      }
+    try {
+      const updatedTrips = savedTrips.filter((trip) => trip.id !== tripId);
+      localStorage.setItem("savedTrips", JSON.stringify(updatedTrips));
+      setSavedTrips(updatedTrips);
+
+      toast.success("Trip deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting trip:", error);
+      toast.error("Failed to delete trip. Please try again.");
     }
   };
 
@@ -63,7 +63,7 @@ export default function SavedTripsPage() {
       router.push("/results");
     } catch (error) {
       console.error("Error viewing trip:", error);
-      alert("Failed to open trip. Please try again.");
+      toast.error("Failed to open trip. Please try again.");
     }
   };
 
