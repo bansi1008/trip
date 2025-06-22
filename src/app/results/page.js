@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import {
   FaMapMarkerAlt,
   FaHotel,
@@ -66,7 +67,7 @@ export default function Results() {
       );
 
       if (isDuplicate) {
-        alert("This trip is already saved!");
+        toast.error("Why do I feel, this trip is exit in you saved tab huhh?");
         return;
       }
 
@@ -76,10 +77,10 @@ export default function Results() {
       // Save to localStorage
       localStorage.setItem("savedTrips", JSON.stringify(updatedSavedTrips));
 
-      alert("Trip saved successfully!");
+      toast.success("whoo, it's saved successfully 🥶");
     } catch (error) {
       console.error("Error saving trip:", error);
-      alert("Failed to save trip. Please try again.");
+      toast.error("it's not you, it's me wait a moemnt plase😢");
     }
   };
 
@@ -129,7 +130,7 @@ export default function Results() {
     } else {
       // Fallback - copy to clipboard
       navigator.clipboard.writeText(window.location.href);
-      alert("Trip link copied to clipboard!");
+      toast.success("Trip link copied to clipboard!");
     }
   };
 

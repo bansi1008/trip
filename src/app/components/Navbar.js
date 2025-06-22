@@ -61,6 +61,30 @@ export default function Navbar() {
             <FiSettings className="nav-icon" />
             How It Works
           </Link>
+
+          {/* Mobile Auth Buttons */}
+          <div className="mobile-auth">
+            <button
+              className="mobile-btn-secondary"
+              onClick={() => {
+                router.push("/signin");
+                setIsMenuOpen(false);
+              }}
+            >
+              <FiUser className="btn-icon" />
+              Sign In
+            </button>
+            <button
+              className="mobile-btn-primary"
+              onClick={() => {
+                router.push("/signup");
+                setIsMenuOpen(false);
+              }}
+            >
+              <FiUserPlus className="btn-icon" />
+              Sign Up
+            </button>
+          </div>
         </div>
 
         <div className="nav-auth">
