@@ -188,6 +188,7 @@ export default function Footer() {
         <div className="footer-bottom">
           <div className="footer-copyright">
             <p>&copy; 2024 AiBasedTrip. All rights reserved.</p>
+            <p>Developed By Bansi Dobariya</p>
           </div>
           <div className="footer-legal">
             <a href="#">Privacy</a>
