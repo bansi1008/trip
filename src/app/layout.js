@@ -1,5 +1,6 @@
 import "../styles/main.css";
 import { Toaster } from "react-hot-toast";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata = {
   title: "AI Travel - Your Perfect Trip, AI-Powered",
@@ -28,6 +29,7 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
+        <Analytics />
         <Toaster position="top-right" />
         {children}
       </body>
