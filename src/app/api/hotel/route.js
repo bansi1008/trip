@@ -1,63 +1,55 @@
-import { getAmadeusToken } from "../../../lib/amadeusToken";
+// File: src/app/api/hotel/route.js
+export async function GET(req) {
+  const { searchParams } = new URL(req.url);
+  const city = searchParams.get("city");
+  const adults = searchParams.get("adults") || "2";
+  const nights = searchParams.get("nights") || "2";
 
-export async function GET(request) {
-  const { searchParams } = new URL(request.url);
-
-  const cityCode = searchParams.get("cityCode"); // e.g. LON
-  const checkInDate = searchParams.get("checkInDate"); // YYYY-MM-DD
-  const checkOutDate = searchParams.get("checkOutDate"); // YYYY-MM-DD
-  const adults = parseInt(searchParams.get("adults")) || 1;
-  const maxPrice = searchParams.get("maxPrice"); // total price
-  const currency = searchParams.get("currency") || "USD";
-
-  if (!cityCode || !checkInDate || !checkOutDate) {
-    return new Response(JSON.stringify({ error: "Missing required params" }), {
+  if (!city) {
+    return new Response(JSON.stringify({ error: "City is required" }), {
       status: 400,
     });
   }
 
+  const headers = {
+    "x-rapidapi-key": "40760bf1a2mshd5763c0b64bacc5p1d2d79jsn3bf6908bc8ab", // replace with your key
+    "x-rapidapi-host": "travel-advisor.p.rapidapi.com",
+  };
+
   try {
-    const token = await getAmadeusToken();
+    const locRes = await fetch(
+      `https://travel-advisor.p.rapidapi.com/locations/search?query=${city}&lang=en_US`,
+      { headers }
+    );
+    const locData = await locRes.json();
+    const locationId = locData?.data?.[0]?.result_object?.location_id;
 
-    let apiUrl = `https://test.api.amadeus.com/v2/shopping/hotel-offers?cityCode=${cityCode}&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}&adults=${adults}&bestRateOnly=true`;
-
-    if (maxPrice) {
-      apiUrl += `&priceRange=0-${maxPrice}&currency=${currency}`;
+    if (!locationId) {
+      return new Response(JSON.stringify({ hotels: [] }), { status: 200 });
     }
 
-    const response = await fetch(apiUrl, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const hotelRes = await fetch(
+      `https://travel-advisor.p.rapidapi.com/hotels/list?location_id=${locationId}&adults=${adults}&rooms=1&nights=${nights}&offset=0&currency=USD&order=asc&limit=10&sort=recommended&lang=en_US`,
+      { headers }
+    );
+    const hotelData = await hotelRes.json();
 
-    const data = await response.json();
-
-    const hotels = (data.data || []).map((offer) => {
-      const hotel = offer.hotel;
-      const hotelName = hotel.name;
-      const hotelId = hotel.hotelId;
-      const latitude = hotel.latitude;
-      const longitude = hotel.longitude;
-
-      const firstOffer = offer.offers?.[0];
-      const total = firstOffer?.price?.total;
-      const currency = firstOffer?.price?.currency;
-
-      return {
-        hotelId,
-        hotelName,
-        price: `${total} ${currency}`,
-        location: { latitude, longitude },
-      };
-    });
+    const hotels = (hotelData?.data || [])
+      .filter((h) => h.name && h.price)
+      .map((h) => ({
+        name: h.name,
+        price: h.price,
+        rating: h.rating,
+        location: h.location_string,
+        distance: h.distance,
+        hotel_class: h.hotel_class,
+      }));
 
     return new Response(JSON.stringify({ hotels }), { status: 200 });
-  } catch (err) {
-    console.error("Hotel Search Error:", err);
-    return new Response(
-      JSON.stringify({ error: "Failed to fetch hotel offers" }),
-      { status: 500 }
-    );
+  } catch (error) {
+    console.error("Hotel Search Error:", error);
+    return new Response(JSON.stringify({ error: "Failed to fetch hotels" }), {
+      status: 500,
+    });
   }
 }
