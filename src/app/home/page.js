@@ -53,11 +53,9 @@ export default function Home() {
         console.log("Trip generated successfully!");
         console.log("Response data:", data);
 
-        // Store the response data in sessionStorage for the results page
         sessionStorage.setItem("tripData", JSON.stringify(data));
         sessionStorage.setItem("tripParams", JSON.stringify(formData));
 
-        // Navigate to results page
         router.push("/results");
       } else {
         console.error("API Error:", data);

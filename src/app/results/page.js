@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { MdFlight } from "react-icons/md";
 import {
   FaMapMarkerAlt,
   FaHotel,
@@ -27,6 +28,7 @@ import HotelCard from "../components/HotelCard";
 import LoadingSpinner from "../components/LoadingSpinner";
 import styles from "./results.module.css";
 import TripNavbar from "../components/TripNavbar";
+import Flightcard from "../components/Flightcard";
 
 export default function Results() {
   const [tripData, setTripData] = useState(null);
@@ -112,7 +114,6 @@ export default function Results() {
       }
     };
 
-    // Small delay for better UX
     setTimeout(loadTripData, 500);
   }, []);
 
@@ -128,7 +129,6 @@ export default function Results() {
         url: window.location.href,
       });
     } else {
-      // Fallback - copy to clipboard
       navigator.clipboard.writeText(window.location.href);
       toast.success("Trip link copied to clipboard!");
     }
@@ -259,6 +259,15 @@ export default function Results() {
               Hotels
             </button>
           )}
+          <button
+            className={`${styles.tab} ${
+              activeTab === "Flight" ? styles.activeTab : ""
+            }`}
+            onClick={() => setActiveTab("Flight")}
+          >
+            <MdFlight />
+            Flight
+          </button>
         </div>
 
         {/* Content Area */}
@@ -266,6 +275,7 @@ export default function Results() {
           {activeTab === "itinerary" && tripData?.itinerary && (
             <ItineraryDisplay itinerary={tripData.itinerary} />
           )}
+          {activeTab === "Flight" && <Flightcard />}
 
           {activeTab === "hotels" && tripData?.hotel && (
             <div className={styles.hotelsSection}>
