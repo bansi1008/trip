@@ -46,7 +46,7 @@ export default function Hero() {
         </p>
 
         <div className="hero-cta">
-          <a href="#get-started" className="btn-hero-primary">
+          <a href="/signin" className="btn-hero-primary">
             <HiRocketLaunch className="btn-icon" />
             Start Planning Now
           </a>

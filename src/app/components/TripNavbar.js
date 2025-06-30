@@ -21,7 +21,7 @@ export default function TripNavbar() {
   const pathname = usePathname();
 
   useEffect(() => {
-    // Mock user data - replace with actual user data from your auth system
+    // Mock user data -
     // const mockUser = {
     //   name: "Bansi Dobariya",
     //   email: "bansidobariya@example.com",

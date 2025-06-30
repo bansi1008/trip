@@ -9,12 +9,33 @@ export async function GET(request) {
   const returnDate = searchParams.get("returnDate");
   const adults = parseInt(searchParams.get("adults")) || 1;
   const currencyCode = searchParams.get("currencyCode") || "USD";
+  const maxFlightOffers = parseInt(searchParams.get("maxFlightOffers")) || 10;
   const maxPrice = parseInt(searchParams.get("maxPrice"));
-  // set a high maxFlightOffers to get a good sample
-  const maxFlightOffers = 100;
+
+  // Validate required parameters
+  if (!origin || !destination || !departureDate) {
+    return new Response(
+      JSON.stringify({
+        error:
+          "Missing required parameters: origin, destination, departureDate",
+      }),
+      { status: 400 }
+    );
+  }
+
+  console.log("Flight API called with params:", {
+    origin,
+    destination,
+    departureDate,
+    returnDate,
+    adults,
+    currencyCode,
+    maxFlightOffers,
+  });
 
   try {
     const token = await getAmadeusToken();
+    console.log("Amadeus token obtained successfully");
 
     const body = {
       originDestinations: [
@@ -45,6 +66,8 @@ export async function GET(request) {
       });
     }
 
+    console.log("Amadeus API request body:", JSON.stringify(body, null, 2));
+
     const response = await fetch(
       "https://test.api.amadeus.com/v2/shopping/flight-offers",
       {
@@ -57,23 +80,38 @@ export async function GET(request) {
       }
     );
 
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Amadeus API error:", errorText);
+      return new Response(
+        JSON.stringify({
+          error: `Amadeus API error: ${response.status} ${response.statusText}`,
+          details: errorText,
+        }),
+        { status: response.status }
+      );
+    }
+
     const data = await response.json();
 
-    // Filter offers within maxPrice
     const filteredOffers = (data.data || []).filter((offer) => {
       const price = parseFloat(offer.price?.grandTotal || "0");
       return maxPrice ? price <= maxPrice : true;
     });
 
-    // Sort descending by price (closest to maxPrice first)
+    // Sort by price (ascending - cheapest first)
     filteredOffers.sort((a, b) => {
       const priceA = parseFloat(a.price?.grandTotal || "0");
       const priceB = parseFloat(b.price?.grandTotal || "0");
-      return priceB - priceA; // descending
+      return priceA - priceB; // ascending
     });
 
-    // Pick top 3 offers
-    const topOffers = filteredOffers.slice(0, 3);
+    // Pick best offers (limited by maxFlightOffers, but at least 3)
+    const numberOfOffers = Math.min(
+      filteredOffers.length,
+      Math.max(3, maxFlightOffers)
+    );
+    const topOffers = filteredOffers.slice(0, numberOfOffers);
 
     const results = topOffers.map((offer) => {
       const airlineCode = offer.validatingAirlineCodes?.[0] || "N/A";
@@ -97,7 +135,12 @@ export async function GET(request) {
       };
     });
 
-    return new Response(JSON.stringify({ flights: results }), { status: 200 });
+    return new Response(JSON.stringify({ flights: results }), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
   } catch (error) {
     console.error("Flight Search Error:", error);
     return new Response(JSON.stringify({ error: "Something went wrong" }), {

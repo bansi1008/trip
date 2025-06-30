@@ -32,14 +32,21 @@ import {
   FaBaby,
   FaGraduationCap,
   FaBusinessTime,
+  FaPlaneDeparture,
+  FaPlaneArrival,
+  FaArrowRight,
 } from "react-icons/fa";
 
 const TripForm = ({ onSubmit }) => {
   const [formData, setFormData] = useState({
     location: "",
+    origin: "",
     days: 3,
+    startDate: "",
+    returnDate: "",
     interests: [],
     travelgroup: "1",
+    numberOfAdults: 1,
     budget: "",
   });
 
@@ -206,12 +213,22 @@ const TripForm = ({ onSubmit }) => {
   };
 
   const handleDaysChange = (increment) => {
-    setFormData((prev) => ({
-      ...prev,
-      days: increment
-        ? Math.min(prev.days + 1, 30)
-        : Math.max(prev.days - 1, 1),
-    }));
+    const newDays = increment
+      ? Math.min(formData.days + 1, 30)
+      : Math.max(formData.days - 1, 1);
+
+    setFormData((prev) => {
+      const updated = { ...prev, days: newDays };
+
+      // Recalculate return date if start date exists
+      if (updated.startDate) {
+        const returnDate = new Date(updated.startDate);
+        returnDate.setDate(returnDate.getDate() + newDays);
+        updated.returnDate = returnDate.toISOString().split("T")[0];
+      }
+
+      return updated;
+    });
   };
 
   const handleInterestToggle = (interestId) => {
@@ -228,19 +245,120 @@ const TripForm = ({ onSubmit }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Handle origin location changes with suggestions
+  const [originSuggestions, setOriginSuggestions] = useState([]);
+  const [showOriginSuggestions, setShowOriginSuggestions] = useState(false);
+
+  const handleOriginChange = async (e) => {
+    const value = e.target.value;
+    setFormData((prev) => ({ ...prev, origin: value }));
+
+    if (value.length >= 2) {
+      try {
+        const res = await fetch(
+          `/api/places?input=${encodeURIComponent(value)}`
+        );
+        const data = await res.json();
+
+        if (data.predictions) {
+          setOriginSuggestions(
+            data.predictions.map((item) => ({
+              description: item.description,
+              place_id: item.place_id,
+            }))
+          );
+          setShowOriginSuggestions(true);
+        }
+      } catch (error) {
+        console.error("Error fetching origin suggestions:", error);
+      }
+    } else {
+      setOriginSuggestions([]);
+      setShowOriginSuggestions(false);
+    }
+  };
+
+  const handleOriginSelect = (location) => {
+    setFormData((prev) => ({ ...prev, origin: location.description }));
+    setOriginSuggestions([]);
+    setShowOriginSuggestions(false);
+  };
+
+  // Handle start date changes
+  const handleStartDateChange = (e) => {
+    const startDate = e.target.value;
+    setFormData((prev) => {
+      const updated = { ...prev, startDate };
+
+      // Calculate return date automatically
+      if (startDate) {
+        const returnDate = new Date(startDate);
+        returnDate.setDate(returnDate.getDate() + prev.days);
+        updated.returnDate = returnDate.toISOString().split("T")[0];
+      } else {
+        updated.returnDate = "";
+      }
+
+      return updated;
+    });
+  };
+
+  // Handle travel group changes with adult count logic
+  const handleTravelGroupChange = (value) => {
+    setFormData((prev) => {
+      const updated = { ...prev, travelgroup: value };
+
+      // Set number of adults based on travel group
+      if (value === "1") {
+        updated.numberOfAdults = 1; // Solo
+      } else if (value === "2") {
+        updated.numberOfAdults = 2; // Couple
+      } else {
+        // For other groups, keep existing value or set to 3 as default
+        if (prev.numberOfAdults <= 2) {
+          updated.numberOfAdults = 3;
+        }
+      }
+
+      return updated;
+    });
+  };
+
+  // Handle manual adult count changes
+  const handleAdultCountChange = (e) => {
+    const count = parseInt(e.target.value) || 1;
+    setFormData((prev) => ({ ...prev, numberOfAdults: Math.max(1, count) }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
     if (
       !formData.location ||
+      !formData.origin ||
+      !formData.startDate ||
       formData.interests.length === 0 ||
       !formData.budget
     ) {
       alert(
-        "Please fill in all required fields and select at least one interest"
+        "Please fill in all required fields including origin, travel date, and select at least one interest"
       );
       return;
     }
+
+    // Store flight data in session storage for other components
+    const flightData = {
+      origin: formData.origin,
+      destination: formData.location,
+      startDate: formData.startDate,
+      returnDate: formData.returnDate,
+      numberOfAdults: formData.numberOfAdults,
+      travelDays: formData.days,
+      budget: formData.budget,
+    };
+
+    sessionStorage.setItem("flightData", JSON.stringify(flightData));
+    console.log("Flight data stored:", flightData);
 
     onSubmit(formData);
   };
@@ -297,6 +415,114 @@ const TripForm = ({ onSubmit }) => {
                   </div>
                 )}
               </div>
+            </div>
+
+            {/* Origin Field */}
+            <div className={styles.formGroup}>
+              <label className={styles.label}>
+                <span className={styles.labelText}>
+                  <FaPlaneDeparture className={styles.labelIcon} />
+                  Origin (Departure from)
+                </span>
+                <span className={styles.required}>*</span>
+              </label>
+              <div className={styles.locationWrapper}>
+                <input
+                  type="text"
+                  value={formData.origin}
+                  onChange={handleOriginChange}
+                  placeholder="Where are you departing from?"
+                  className={styles.input}
+                  autoComplete="off"
+                />
+                {showOriginSuggestions && originSuggestions.length > 0 && (
+                  <div className={styles.suggestions}>
+                    {originSuggestions.map((suggestion) => (
+                      <div
+                        key={suggestion.place_id}
+                        className={styles.suggestionItem}
+                        onClick={() => handleOriginSelect(suggestion)}
+                      >
+                        <FaPlaneDeparture className={styles.suggestionIcon} />
+                        {suggestion.description}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Travel Dates */}
+            <div className={styles.formGroup}>
+              <label className={styles.label}>
+                <span className={styles.labelText}>
+                  <FaCalendarAlt className={styles.labelIcon} />
+                  Travel Dates
+                </span>
+                <span className={styles.required}>*</span>
+              </label>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr auto 1fr",
+                  gap: "1rem",
+                  alignItems: "center",
+                }}
+              >
+                <div>
+                  <label
+                    style={{
+                      fontSize: "0.9rem",
+                      color: "#666",
+                      marginBottom: "0.5rem",
+                      display: "block",
+                    }}
+                  >
+                    Departure Date
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.startDate}
+                    onChange={handleStartDateChange}
+                    className={styles.input}
+                    min={new Date().toISOString().split("T")[0]}
+                  />
+                </div>
+                <FaArrowRight
+                  style={{
+                    color: "#666",
+                    fontSize: "1.2rem",
+                    marginTop: "1.5rem",
+                  }}
+                />
+                <div>
+                  <label
+                    style={{
+                      fontSize: "0.9rem",
+                      color: "#666",
+                      marginBottom: "0.5rem",
+                      display: "block",
+                    }}
+                  >
+                    Return Date
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.returnDate}
+                    readOnly
+                    className={styles.input}
+                    style={{
+                      backgroundColor: "#f8f9fa",
+                      cursor: "not-allowed",
+                    }}
+                    placeholder="Auto-calculated"
+                  />
+                </div>
+              </div>
+              <p className={styles.fieldHint}>
+                Return date is automatically calculated based on your trip
+                duration
+              </p>
             </div>
 
             {/* Duration Field with Counter */}
@@ -395,12 +621,7 @@ const TripForm = ({ onSubmit }) => {
                           ? styles.selected
                           : ""
                       }`}
-                      onClick={() =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          travelgroup: option.value,
-                        }))
-                      }
+                      onClick={() => handleTravelGroupChange(option.value)}
                     >
                       <IconComponent className={styles.travelGroupIcon} />
                       <span className={styles.travelGroupLabel}>
@@ -414,6 +635,84 @@ const TripForm = ({ onSubmit }) => {
                 })}
               </div>
             </div>
+
+            {/* Number of Adults Field */}
+            {formData.travelgroup !== "1" && formData.travelgroup !== "2" && (
+              <div className={styles.formGroup}>
+                <label className={styles.label}>
+                  <span className={styles.labelText}>
+                    <FaUsers className={styles.labelIcon} />
+                    Number of Adults
+                  </span>
+                  <span className={styles.required}>*</span>
+                </label>
+                <p className={styles.fieldHint}>
+                  How many adults will be traveling?
+                </p>
+                <div className={styles.daysCounter}>
+                  <button
+                    type="button"
+                    className={styles.counterButton}
+                    onClick={() =>
+                      handleAdultCountChange({
+                        target: { value: formData.numberOfAdults - 1 },
+                      })
+                    }
+                    disabled={formData.numberOfAdults <= 1}
+                  >
+                    <FaMinus />
+                  </button>
+                  <div className={styles.counterValue}>
+                    <span className={styles.daysNumber}>
+                      {formData.numberOfAdults}
+                    </span>
+                    <span className={styles.daysLabel}>
+                      {formData.numberOfAdults === 1 ? "Adult" : "Adults"}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.counterButton}
+                    onClick={() =>
+                      handleAdultCountChange({
+                        target: { value: formData.numberOfAdults + 1 },
+                      })
+                    }
+                    disabled={formData.numberOfAdults >= 10}
+                  >
+                    <FaPlus />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Adult Count Display for Solo/Couple */}
+            {(formData.travelgroup === "1" || formData.travelgroup === "2") && (
+              <div className={styles.formGroup}>
+                <label className={styles.label}>
+                  <span className={styles.labelText}>
+                    <FaUsers className={styles.labelIcon} />
+                    Number of Adults
+                  </span>
+                </label>
+                <div
+                  style={{
+                    padding: "1rem",
+                    background: "#f8f9fa",
+                    borderRadius: "8px",
+                    color: "#666",
+                    textAlign: "center",
+                  }}
+                >
+                  <strong>
+                    {formData.numberOfAdults} Adult
+                    {formData.numberOfAdults !== 1 ? "s" : ""}
+                  </strong>
+                  <br />
+                  <small>Automatically set based on travel group</small>
+                </div>
+              </div>
+            )}
 
             {/* Budget Field */}
             <div className={styles.formGroup}>
