@@ -193,7 +193,6 @@ const ai = new GoogleGenAI({
 
 export async function POST(req) {
   const user = await authenticateRequest(req);
- 
 
   if (!user) {
     return new Response(JSON.stringify({ message: "Unauthorized" }), {
@@ -324,7 +323,6 @@ export async function POST(req) {
 
     let itineraryText = "";
     for await (const chunk of itineraryStream) {
-      // Fixed: Changed 'stream' to 'itineraryStream'
       itineraryText += chunk.text;
     }
 
