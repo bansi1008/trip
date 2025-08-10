@@ -37,7 +37,7 @@ export async function POST(req) {
     ]
       .filter(Boolean)
       .join("; ");
-    return new Response(JSON.stringify({ message: "login success full" }), {
+    return new Response(JSON.stringify({ message: "login successfull" }), {
       status: 200,
       headers: {
         "Content-Type": "application/json",

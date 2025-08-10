@@ -1,7 +1,11 @@
 import { connectToDatabase } from "@/lib/mongodb";
 import User from "@/models/User";
-import Redis from "ioredis";
-const redis = new Redis(process.env.REDIS_HOST);
+import { Redis } from "@upstash/redis";
+
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
 
 export async function POST(req) {
   try {

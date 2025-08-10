@@ -1,10 +1,14 @@
 import { connectToDatabase } from "@/lib/mongodb";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
-import Redis from "ioredis";
-import nodemailer from "nodemailer";
 
-const redis = new Redis(process.env.REDIS_HOST);
+import nodemailer from "nodemailer";
+import { Redis } from "@upstash/redis";
+
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
 
 const transporter = nodemailer.createTransport({
   service: "Gmail",
@@ -20,20 +24,15 @@ export async function POST(req) {
 
   try {
     await connectToDatabase();
-
+    const numericOtp = parseInt(otp, 10);
     if (verifyOtp) {
       const savedOtp = await redis.get(`otp:${email}`);
-      if (savedOtp && savedOtp.toString() === otp.toString()) {
-        console.log("OTP Verified!");
-      } else {
-        return new Response(
-          JSON.stringify({ message: "Invalid or expired OTP" }),
-          { status: 400, headers: { "Content-Type": "application/json" } }
-        );
-      }
 
-      if (otp !== savedOtp) {
-        return Response.json({ message: "Invalid OTP" }, { status: 400 });
+      if (numericOtp !== savedOtp) {
+        console.log("saved otp:", savedOtp);
+        console.log("received otp:", numericOtp);
+        console.error("OTP does not match");
+        return Response.json({ message: "Invalid OTP" }, { status: 404 });
       }
 
       await redis.del(`otp:${email}`);
@@ -46,7 +45,13 @@ export async function POST(req) {
         confirmPassword,
       });
 
-      await newUser.save();
+      await newUser.save().catch((error) => {
+        console.error("Error saving user:", error);
+        return new Response(
+          JSON.stringify({ message: "Error creating user" }),
+          { status: 500, headers: { "Content-Type": "application/json" } }
+        );
+      });
 
       return Response.json(
         { message: "User created successfully" },
@@ -72,7 +77,7 @@ export async function POST(req) {
       const generatedOtp = Math.floor(
         100000 + Math.random() * 900000
       ).toString();
-      await redis.set(`otp:${email}`, generatedOtp, "EX", 300);
+      await redis.set(`otp:${email}`, generatedOtp, { ex: 300 });
 
       await transporter.sendMail({
         from: process.env.EMAIL_USER,
