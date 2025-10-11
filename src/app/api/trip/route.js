@@ -310,12 +310,12 @@ export async function POST(req) {
     // Parallelize streaming API calls
     const [itineraryStream, hotelsStream] = await Promise.all([
       ai.models.generateContentStream({
-        model: "gemini-2.0-flash",
+        model: "gemini-2.5-flash",
         generationConfig,
         contents: prompt,
       }),
       ai.models.generateContentStream({
-        model: "gemini-2.0-flash",
+        model: "gemini-2.5-flash",
         generationConfig,
         contents: hotelPrompt,
       }),
